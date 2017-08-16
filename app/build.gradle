@@ -3,6 +3,38 @@ apply plugin: 'jacoco'
 jacoco {
     toolVersion = "0.7.5.201505241946"
 }
+
+// Edit covered scope if needed
+// For my part I like having the coverage of both application and tests
+def coverageSourceDirs = [
+        '../app/src'
+]
+
+task jacocoTestReport(type: JacocoReport, dependsOn: "test") {
+    group = "Reporting"
+
+    description = "Generate Jacoco coverage reports"
+
+    classDirectories = fileTree(
+            dir: '../app/build/intermediates/classes',
+            excludes: ['**/R.class',
+                       '**/R$*.class',
+                       '**/*$ViewInjector*.*',
+                       '**/BuildConfig.*',
+                       '**/Manifest*.*']
+    )
+
+    additionalSourceDirs = files(coverageSourceDirs)
+    sourceDirectories = files(coverageSourceDirs)
+    executionData = files('../app/build/jacoco/testUnitTestDebug.exec')
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+
+}
+//end Jacoco config
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.3"
@@ -19,10 +51,18 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            testCoverageEnabled false
         }
         debug {
             testCoverageEnabled true
+            debuggable true
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    lintOptions {
+        // I prefer avoiding a build fail if there is any warning, for they are only warnings
+        abortOnError false
     }
 }
 
@@ -53,10 +93,7 @@ dependencies {
     androidTestCompile 'org.mockito:mockito-core:1.10.19'
     androidTestCompile "com.google.dexmaker:dexmaker:1.2"
     androidTestCompile "com.google.dexmaker:dexmaker-mockito:1.2"
-
-
-
+    
     compile 'org.mockito:mockito-core:1.10.19'
-    compile 'junit:junit:4.12'
     compile 'junit:junit:4.12'
 }
